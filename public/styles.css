@@ -1,0 +1,12 @@
+body {
+	font-family: arial, serif, sans-seif;
+}
+
+.msg {
+	background-color: rgb(245, 171, 53);
+	padding: 5px;
+}
+
+form {
+	padding: 10px;
+}
