@@ -1,9 +1,12 @@
-<h1>Todo Tracker</h1> 
+<h1>Content Management System</h1> 
 <ul>
   <% @files.each do |name| %>
     <li>
     	<a href="/<%= name %>"><%= name %></a>
     	<a href="/<%= name %>/edit">Edit</a>
+    	<form class="inline" method="post" action="<%= name %>/delete">
+    		<button>Delete</button>
+    	</form>
     </li>
   <% end %>
 </ul>

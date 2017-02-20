@@ -98,3 +98,14 @@ post "/new" do
     redirect "/"
   end
 end
+
+post "/:filename/delete" do
+  if !File.exist?(File.join(data_path, params[:filename]))
+    session[:error] = "Cannot delete the file. File doesn't exists."
+    erb :index, layout: :layout
+  else
+    File.delete(File.join(data_path, params[:filename]))
+    session[:success] = "#{params[:filename]} was deleted."
+    redirect "/"
+  end
+end

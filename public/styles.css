@@ -10,3 +10,7 @@ body {
 form {
 	padding: 10px;
 }
+
+form.inline {
+	display: inline;
+}
