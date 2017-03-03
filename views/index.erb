@@ -11,3 +11,12 @@
   <% end %>
 </ul>
 <a href="/new">New Document</a>
+
+<% if !session[:user].nil? %>
+<form action="/users/signout" method="post">
+	<label>Signed in as <%= session[:user][:username] %>.</label>
+	<button>Sign out</button>
+</form>
+<% else %>
+<a href="/users/signin">Sign in</a>
+<% end %>

@@ -16,6 +16,10 @@ helpers do
     markdown = Redcarpet::Markdown.new(Redcarpet::Render::HTML)
     markdown.render(text)
   end
+
+  def valid_credentials?(username, password)
+    username == "admin" and password == "success"
+  end
 end
 
 def data_path
@@ -36,6 +40,15 @@ end
 
 get "/new" do
   erb :new, layout: :layout
+end
+
+get "/users/signin" do
+  if !session[:user].nil?
+    session[:error] = "You are already logged in"
+    redirect "/"
+  else
+    erb :signin, layout: :layout
+  end
 end
 
 get "/:filename" do
@@ -68,6 +81,26 @@ get "/:filename/edit" do
   @file_content = File.read(file_path)
 
   erb :edit, layout: :layout
+end
+
+post "/users/signin" do
+  username = params[:username]
+  password = params[:password]
+
+  if valid_credentials?(username, password) 
+    session[:success] = "Welcome!"
+    session[:user] = {:username => username, :password => password}
+    redirect "/"
+  else
+    session[:error] = "Invalid Credentials"
+    erb :signin, layout: :layout 
+  end
+end
+
+post "/users/signout" do
+  session.delete(:user)
+  session[:success] = "You have been signed out."
+  redirect "/"
 end
 
 post "/:filename/edit" do
