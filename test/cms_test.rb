@@ -15,6 +15,10 @@ class CMSTest < Minitest::Test
   def teardown
     FileUtils.rm_rf(data_path)
   end
+
+  def session
+    last_request.env["rack.session"]
+  end
    
   def create_document(name, content = "")
     File.open(File.join(data_path, name), "w") do |file|
@@ -51,10 +55,8 @@ class CMSTest < Minitest::Test
     get "/illegal.txt"
 
     assert_equal 302, last_response.status
-    get last_response["Location"]
-
-    assert_equal 200, last_response.status
-    assert_includes last_response.body, "illegal.txt does not exist."
+    
+    assert_equal session[:error], "illegal.txt does not exist."
   end
 
   def test_fetch_edit_page_success
@@ -70,10 +72,8 @@ class CMSTest < Minitest::Test
     get "/touch.md/edit"
 
     assert_equal 302, last_response.status
-    get last_response["Location"]
 
-    assert_equal 200, last_response.status
-    assert_includes last_response.body, "touch.md does not exist."
+    assert_equal "touch.md does not exist.", session[:error] 
   end
 
   def test_edit_about_txt_success
@@ -82,10 +82,8 @@ class CMSTest < Minitest::Test
     post "/about.txt/edit", params={ :edittext => 'Post field' }
 
     assert_equal 302, last_response.status
-    get last_response["Location"]
 
-    assert_equal 200, last_response.status
-    assert_includes last_response.body, "about.txt has been updated."
+    assert_equal session[:success], "about.txt has been updated."
 
     about_file_path = data_path + "/about.txt"
     about_file_content = File.read(about_file_path)
@@ -97,10 +95,8 @@ class CMSTest < Minitest::Test
     post "/new", params={:filename => "kappa.txt"}
      
     assert_equal 302, last_response.status
-    get last_response["Location"]
-
-    assert_equal 200, last_response.status
-    assert_includes last_response.body, "kappa.txt has been created."
+  
+    assert_equal session[:success], "kappa.txt has been created."
 
     kappa_file_path = data_path + "/kappa.txt"
     kappa_file_content = File.read(kappa_file_path)
@@ -132,10 +128,7 @@ class CMSTest < Minitest::Test
     post "/about.txt/delete"
     assert_equal 302, last_response.status
 
-    get last_response["Location"]
-
-    assert_equal 200, last_response.status
-    assert_includes last_response.body, "about.txt was deleted."
+    assert_equal session[:success], "about.txt was deleted."
   end
 
   def test_fetch_signin_page_success
@@ -149,10 +142,11 @@ class CMSTest < Minitest::Test
 
     assert_equal 302, last_response.status
 
+    assert_includes session[:success], "Welcome!"
+    assert_includes session[:user][:username], "admin"
+
     get last_response["Location"]
 
-    assert_equal 200, last_response.status
-    assert_includes last_response.body, "Welcome!"
     assert_includes last_response.body, "Signed in as admin."
   end
 
@@ -169,10 +163,10 @@ class CMSTest < Minitest::Test
 
     assert_equal 302, last_response.status
 
+    assert_equal session[:success], "You have been signed out."
+
     get last_response["Location"]
 
-    assert_equal 200, last_response.status
-    assert_includes last_response.body, "You have been signed out."
     refute_includes last_response.body, "Signed in as admin." 
   end
 end
