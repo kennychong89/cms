@@ -20,6 +20,10 @@ helpers do
   def valid_credentials?(username, password)
     username == "admin" and password == "success"
   end
+
+  def signed_in?
+    !session[:user].nil?
+  end
 end
 
 def data_path
@@ -39,6 +43,11 @@ get "/" do
 end
 
 get "/new" do
+  if !signed_in?
+    session[:error] = "You must be signed in to do that"
+    redirect "/"   
+  end
+
   erb :new, layout: :layout
 end
 
@@ -70,6 +79,11 @@ get "/:filename" do
 end
 
 get "/:filename/edit" do
+  if !signed_in?
+    session[:error] = "You must be signed in to do that"
+    redirect "/" 
+  end
+
   file_path = File.join(data_path, params[:filename])
   @filename = params[:filename]
 
@@ -86,7 +100,7 @@ end
 post "/users/signin" do
   username = params[:username]
   password = params[:password]
-
+  
   if valid_credentials?(username, password) 
     session[:success] = "Welcome!"
     session[:user] = {:username => username, :password => password}
@@ -104,6 +118,11 @@ post "/users/signout" do
 end
 
 post "/:filename/edit" do
+  if !signed_in?
+    session[:error] = "You must be signed in to do that"
+    redirect "/"   
+  end
+
   file_path = File.join(data_path, params[:filename])
   file_content = params[:edittext]
 
@@ -119,6 +138,11 @@ post "/:filename/edit" do
 end
 
 post "/new" do
+  if !signed_in?
+    session[:error] = "You must be signed in to do that"
+    redirect "/"   
+  end
+
   if params[:filename].nil? or params[:filename].strip.empty?    
     session[:error] = "A name is required."
     erb :new, layout: :layout 
@@ -133,6 +157,11 @@ post "/new" do
 end
 
 post "/:filename/delete" do
+  if !signed_in?
+    session[:error] = "You must be signed in to do that"
+    redirect "/"   
+  end
+
   if !File.exist?(File.join(data_path, params[:filename]))
     session[:error] = "Cannot delete the file. File doesn't exists."
     erb :index, layout: :layout

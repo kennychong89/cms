@@ -19,6 +19,10 @@ class CMSTest < Minitest::Test
   def session
     last_request.env["rack.session"]
   end
+
+  def admin_session
+    { "rack.session" =>  { :user => {} } }
+  end
    
   def create_document(name, content = "")
     File.open(File.join(data_path, name), "w") do |file|
@@ -61,15 +65,15 @@ class CMSTest < Minitest::Test
 
   def test_fetch_edit_page_success
     create_document "history.txt", "1993 - Yukihiro Matsumoto dreams up Ruby."
-    get "/history.txt/edit"
-
+    get "/history.txt/edit", {}, admin_session
+    
     assert_equal 200, last_response.status
     assert_includes last_response.body, "Edit content of history.txt:"
     assert_includes last_response.body, "1993 - Yukihiro Matsumoto dreams up Ruby." 
   end
 
   def test_fetch_edit_page_error
-    get "/touch.md/edit"
+    get "/touch.md/edit", {}, admin_session
 
     assert_equal 302, last_response.status
 
@@ -79,7 +83,7 @@ class CMSTest < Minitest::Test
   def test_edit_about_txt_success
     create_document "about.txt"
 
-    post "/about.txt/edit", params={ :edittext => 'Post field' }
+    post "/about.txt/edit", params={ :edittext => 'Post field' }, admin_session
 
     assert_equal 302, last_response.status
 
@@ -92,7 +96,7 @@ class CMSTest < Minitest::Test
   end
 
   def test_new_file_success
-    post "/new", params={:filename => "kappa.txt"}
+    post "/new", params={:filename => "kappa.txt"}, admin_session
      
     assert_equal 302, last_response.status
   
@@ -105,7 +109,7 @@ class CMSTest < Minitest::Test
   end
 
   def test_new_file_empty_file_name_error
-    post "/new"
+    post "/new", {}, admin_session
 
     assert_equal 200, last_response.status
     assert_includes last_response.body, "A name is required."
@@ -125,7 +129,7 @@ class CMSTest < Minitest::Test
     create_document "about.txt", "hello"
     create_document "what.txt"
 
-    post "/about.txt/delete"
+    post "/about.txt/delete", {}, admin_session
     assert_equal 302, last_response.status
 
     assert_equal session[:success], "about.txt was deleted."
